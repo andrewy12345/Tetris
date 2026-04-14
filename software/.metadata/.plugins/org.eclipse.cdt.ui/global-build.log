@@ -1,0 +1,189 @@
+Nothing to build in platform 'tetris_plt'
+
+18:47:30 **** Incremental Build of configuration Debug for project core0 ****
+make all 
+make --no-print-directory pre-build
+a9-linaro-pre-build-step
+' '
+make --no-print-directory main-build
+'Building file: ../src/main.cc'
+'Invoking: ARM v7 g++ compiler'
+arm-none-eabi-g++ -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/main.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/jya236/Documents/tetris/software/tetris_plt/export/tetris_plt/sw/tetris_plt/standalone_domain/bspinclude/include -MMD -MP -MF"src/main.d" -MT"src/main.o" -o "src/main.o" "../src/main.cc"
+'Finished building: ../src/main.cc'
+' '
+'Building target: core0.elf'
+'Invoking: ARM v7 g++ linker'
+arm-none-eabi-g++ -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -Wl,-build-id=none -specs=Xilinx.spec -Wl,-T -Wl,../src/lscript.ld -LC:/Users/jya236/Documents/tetris/software/tetris_plt/export/tetris_plt/sw/tetris_plt/standalone_domain/bsplib/lib -o "core0.elf"  ./src/block.o ./src/lodepng.o ./src/main.o ./src/png_loader.o ./src/simple_text.o   -Wl,--start-group,-lxil,-lgcc,-lc,-lstdc++,--end-group
+'Finished building target: core0.elf'
+' '
+'Invoking: ARM v7 Print Size'
+arm-none-eabi-size core0.elf  |tee "core0.elf.size"
+   text	   data	    bss	    dec	    hex	filename
+ 780379	   3440	  25084	 808903	  c57c7	core0.elf
+'Finished building: core0.elf.size'
+' '
+18:49:53 **** Clean-only build of configuration Debug for project core0 ****
+make clean 
+rm -rf  ./src/lodepng.d ./src/main.d ./src/png_loader.d  ./src/block.o ./src/lodepng.o ./src/main.o ./src/png_loader.o ./src/simple_text.o  ./src/block.d ./src/simple_text.d  core0.elf.size  core0.elf
+' '
+18:49:53 **** Clean-only build of configuration Debug for project core1 ****
+make clean 
+rm -rf  ./src/audio.o ./src/background_music_player.o ./src/start.o ./src/volume_presets.o  ./src/audio.d ./src/background_music_player.d ./src/start.d ./src/volume_presets.d  core1.elf.size  core1.elf
+' '
+18:49:54 **** Clean-only build of configuration Debug for project dual_core_system ****
+make clean 
+rm -rf ./_sds
+rm -rf package
+rm -f system.bif
+18:49:54 **** Clean-only build of project tetris_plt ****
+buildplatform.bat 19709 tetris_plt clean 
+XSDB Server Channel: tcfchan#4
+Cleaning the zynq_fsbl application.
+rm -rf  sd.o  nand.o  image_mover.o  md5.o  fsbl_hooks.o  main.o  nor.o  qspi.o  rsa.o  ps7_init.o  pcap.o  fsbl_handoff.o zynq
+_fsbl_bsp/ps7_cortexa9_0/lib/libxil.a fsbl.elf *.o
+
+Cleaning the zynq_fsbl application, bsp
+make -C ps7_cortexa9_0/libsrc/coresightps_dcc_v1_8/src -s clean 
+
+make -C ps7_cortexa9_0/libsrc/cpu_cortexa9_v2_10/src -s clean 
+
+make -C ps7_cortexa9_0/libsrc/ddrps_v1_2/src -s clean 
+
+make -C ps7_cortexa9_0/libsrc/devcfg_v3_7/src -s clean 
+
+make -C ps7_cortexa9_0/libsrc/dmaps_v2_7/src -s clean 
+
+make -C ps7_cortexa9_0/libsrc/emacps_v3_12/src -s clean 
+
+make -C ps7_cortexa9_0/libsrc/gpiops_v3_8/src -s clean 
+
+make -C ps7_cortexa9_0/libsrc/gpio_v4_7/src -s clean 
+
+make -C ps7_cortexa9_0/libsrc/iicps_v3_12/src -s clean 
+
+make -C ps7_cortexa9_0/libsrc/LFSR_v1_0/src -s clean 
+
+make -C ps7_cortexa9_0/libsrc/qspips_v3_8/src -s clean 
+
+make -C ps7_cortexa9_0/libsrc/scugic_v4_3/src -s clean 
+
+make -C ps7_cortexa9_0/libsrc/scutimer_v2_3/src -s clean 
+
+make -C ps7_cortexa9_0/libsrc/scuwdt_v2_3/src -s clean 
+
+make -C ps7_cortexa9_0/libsrc/sdps_v3_10/src -s clean 
+
+make -C ps7_cortexa9_0/libsrc/standalone_v7_3/src -s clean 
+
+make -C ps7_cortexa9_0/libsrc/test1_v1_0/src -s clean 
+
+make -C ps7_cortexa9_0/libsrc/tmrctr_v4_7/src -s clean 
+
+make -C ps7_cortexa9_0/libsrc/ttcps_v3_12/src -s clean 
+
+make -C ps7_cortexa9_0/libsrc/uartps_v3_10/src -s clean 
+
+make -C ps7_cortexa9_0/libsrc/usbps_v2_6/src -s clean 
+
+make -C ps7_cortexa9_0/libsrc/xadcps_v2_5/src -s clean 
+
+make -C ps7_cortexa9_0/libsrc/xilffs_v4_4/src -s clean 
+
+make -C ps7_cortexa9_0/libsrc/xilrsa_v1_6/src -s clean 
+
+rm -f ps7_cortexa9_0/lib/libxil.a
+
+Cleaning the BSP for domain  - standalone_domain
+make -C ps7_cortexa9_0/libsrc/coresightps_dcc_v1_8/src -s clean 
+
+make -C ps7_cortexa9_0/libsrc/cpu_cortexa9_v2_10/src -s clean 
+
+make -C ps7_cortexa9_0/libsrc/ddrps_v1_2/src -s clean 
+
+make -C ps7_cortexa9_0/libsrc/devcfg_v3_7/src -s clean 
+
+make -C ps7_cortexa9_0/libsrc/dmaps_v2_7/src -s clean 
+
+make -C ps7_cortexa9_0/libsrc/emacps_v3_12/src -s clean 
+
+make -C ps7_cortexa9_0/libsrc/gpiops_v3_8/src -s clean 
+
+make -C ps7_cortexa9_0/libsrc/gpio_v4_7/src -s clean 
+
+make -C ps7_cortexa9_0/libsrc/iicps_v3_12/src -s clean 
+
+make -C ps7_cortexa9_0/libsrc/LFSR_v1_0/src -s clean 
+
+make -C ps7_cortexa9_0/libsrc/qspips_v3_8/src -s clean 
+
+make -C ps7_cortexa9_0/libsrc/scugic_v4_3/src -s clean 
+
+make -C ps7_cortexa9_0/libsrc/scutimer_v2_3/src -s clean 
+
+make -C ps7_cortexa9_0/libsrc/scuwdt_v2_3/src -s clean 
+
+make -C ps7_cortexa9_0/libsrc/sdps_v3_10/src -s clean 
+
+make -C ps7_cortexa9_0/libsrc/standalone_v7_3/src -s clean 
+
+make -C ps7_cortexa9_0/libsrc/test1_v1_0/src -s clean 
+
+make -C ps7_cortexa9_0/libsrc/tmrctr_v4_7/src -s clean 
+
+make -C ps7_cortexa9_0/libsrc/ttcps_v3_12/src -s clean 
+
+make -C ps7_cortexa9_0/libsrc/uartps_v3_10/src -s clean 
+
+make -C ps7_cortexa9_0/libsrc/usbps_v2_6/src -s clean 
+
+make -C ps7_cortexa9_0/libsrc/xadcps_v2_5/src -s clean 
+
+rm -f ps7_cortexa9_0/lib/libxil.a
+
+Cleaning the BSP for domain  - standalone_on_ps7_cortexa9_1
+make -C ps7_cortexa9_1/libsrc/coresightps_dcc_v1_8/src -s clean 
+
+make -C ps7_cortexa9_1/libsrc/cpu_cortexa9_v2_10/src -s clean 
+
+make -C ps7_cortexa9_1/libsrc/ddrps_v1_2/src -s clean 
+
+make -C ps7_cortexa9_1/libsrc/devcfg_v3_7/src -s clean 
+
+make -C ps7_cortexa9_1/libsrc/dmaps_v2_7/src -s clean 
+
+make -C ps7_cortexa9_1/libsrc/emacps_v3_12/src -s clean 
+
+make -C ps7_cortexa9_1/libsrc/gpiops_v3_8/src -s clean 
+
+make -C ps7_cortexa9_1/libsrc/gpio_v4_7/src -s clean 
+
+make -C ps7_cortexa9_1/libsrc/iicps_v3_12/src -s clean 
+
+make -C ps7_cortexa9_1/libsrc/LFSR_v1_0/src -s clean 
+
+make -C ps7_cortexa9_1/libsrc/qspips_v3_8/src -s clean 
+
+make -C ps7_cortexa9_1/libsrc/scugic_v4_3/src -s clean 
+
+make -C ps7_cortexa9_1/libsrc/scutimer_v2_3/src -s clean 
+
+make -C ps7_cortexa9_1/libsrc/scuwdt_v2_3/src -s clean 
+
+make -C ps7_cortexa9_1/libsrc/sdps_v3_10/src -s clean 
+
+make -C ps7_cortexa9_1/libsrc/standalone_v7_3/src -s clean 
+
+make -C ps7_cortexa9_1/libsrc/test1_v1_0/src -s clean 
+
+make -C ps7_cortexa9_1/libsrc/tmrctr_v4_7/src -s clean 
+
+make -C ps7_cortexa9_1/libsrc/ttcps_v3_12/src -s clean 
+
+make -C ps7_cortexa9_1/libsrc/uartps_v3_10/src -s clean 
+
+make -C ps7_cortexa9_1/libsrc/usbps_v2_6/src -s clean 
+
+make -C ps7_cortexa9_1/libsrc/xadcps_v2_5/src -s clean 
+
+rm -f ps7_cortexa9_1/lib/libxil.a
+

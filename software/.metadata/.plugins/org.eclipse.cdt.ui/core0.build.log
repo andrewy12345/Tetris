@@ -1,0 +1,7 @@
+18:49:53 **** Clean-only build of configuration Debug for project core0 ****
+make clean 
+rm -rf  ./src/lodepng.d ./src/main.d ./src/png_loader.d  ./src/block.o ./src/lodepng.o ./src/main.o ./src/png_loader.o ./src/simple_text.o  ./src/block.d ./src/simple_text.d  core0.elf.size  core0.elf
+' '
+
+18:49:53 Build Finished (took 253ms)
+

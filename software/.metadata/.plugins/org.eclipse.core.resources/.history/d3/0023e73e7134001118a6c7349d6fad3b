@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="ASCII"?>
+<sdkproject:SdkProject xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:sdkproject="http://www.xilinx.com/sdkproject" name="core1" location="U:/final/Tetris/core1" platform="U:/final/Tetris/tetris_plt/export/tetris_plt/tetris_plt.xpfm" platformUID="xilinx:zed::0.0(custom)" systemProject="dual_core_system" sysConfig="tetris_plt" runtime="C/C++" cpu="standalone_on_ps7_cortexa9_1" cpuInstance="ps7_cortexa9_1" os="standalone" mssSignature="1ab5fe4b685258a180e5f7f969ba4204">
+  <configuration name="Debug" id="xilinx.gnu.armv7.exe.debug.2118299926">
+    <configBuildOptions xsi:type="sdkproject:SdkOptions"/>
+    <lastBuildOptions xsi:type="sdkproject:SdkOptions"/>
+  </configuration>
+  <configuration name="Release" id="xilinx.gnu.armv7.exe.release.789730652" dirty="true">
+    <configBuildOptions xsi:type="sdkproject:SdkOptions"/>
+  </configuration>
+  <template appTemplateName="empty_application"/>
+</sdkproject:SdkProject>

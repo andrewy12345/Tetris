@@ -1,0 +1,467 @@
+
+#include <stdio.h>
+#include "xil_types.h"
+#include "xtmrctr.h"
+#include "xparameters.h"
+#include "xGpio.h" // for buttons
+#include "xil_io.h"
+#include "xil_exception.h"
+#include "xscugic.h"
+#include "xil_printf.h"
+#include <cstdlib>
+#include <unistd.h>
+#include "xil_cache.h"
+#include "xuartps.h"
+#include "xuartps_hw.h"
+#include "xscutimer.h"
+#include "xil_mmu.h"
+#include "xpseudo_asm.h"
+
+#include "tetris.h"
+#include "block.h"
+#include "menu_objects.h"
+#include "simple_text.h"
+#include "png_loader.h"
+#include "shared_memory.h"
+
+#define sev() __asm__("sev")
+#define ARM1_STARTADR 0xFFFFFFF0
+#define ARM1_BASEADDR 0x10080000
+
+// channel for GPIO buttons
+#define BUTTON_CHANNEL 		XGPIO_IR_CH1_MASK
+
+// button bits
+#define MIDDLE 	0x01 // bit 0 (0x01) = center button
+#define DOWN 	0x02 // bit 1 (0x02) = down button
+#define UP		0x10 // bit 4 (0x10) = up button
+#define LEFT 	0x04 // bit 2 (0x04) = left button
+#define RIGHT 	0x08 // bit 3 (0x08) = right button
+
+#define SELECT_HEIGHT 65
+#define SELECT_WIDTH 65
+
+
+// memory locations for different frame buffers
+int* vga_buffer_pointer = (int*)(0x00900000);
+int* frame_buffer_pointer = (int*)(0x01000000);
+int* main_menu_pointer = (int*)(0x02000000);
+int* pause_menu_pointer = (int*)(0x03000000);
+int* gameover_pointer = (int*)(0x04000000);
+
+// for gamestates
+static u8 gamestate = 0; // 0 for main menu, 1 for game screen, 2 for pause menu
+
+// option select for each menu
+static u8 main_menu_select = 0;
+static u8 pause_menu_select = 0;
+static u8 gameover_select = 0;
+
+// in game variables
+static unsigned int high_score = 0;
+static unsigned int score = 0;
+static unsigned int game_score = 0;
+static unsigned int game_speed = 100000000;
+static u8 percent = 50;
+static char sound_text[32] = {0};
+static char high_score_text[32] = {0};
+static char score_text[32] = {0};
+
+static XGpio Gpio;
+
+static XUartPs UartPs;
+static XUartPs_Config* UartConfig;
+
+static XScuGic_Config* IntcConfig;
+static XScuGic Intc;
+
+static XScuTimer TimerInstance;
+static XScuTimer_Config* TimerConfig;
+
+
+/* ============================================================================ *
+ * 						COMPOSE SCREEN BY INDEX  								*
+ * ============================================================================ *
+ *
+ * This function composes a specific screen based on the index
+ * Called both at startup AND when switches change
+ */
+void draw_button_highlight(int* vga_buffer,
+                          unsigned int x_pos,
+                          unsigned int y_pos,
+                          unsigned int width,
+                          unsigned int height,
+                          uint32_t color,
+                          unsigned int thickness)
+{
+    // Draw top border
+    for (unsigned int t = 0; t < thickness; t++) {
+        for (unsigned int x = 0; x < width; x++) {
+            vga_buffer[(y_pos + t) * H_RESOLUTION + x_pos + x] = color;
+        }
+    }
+
+    // Draw bottom border
+    for (unsigned int t = 0; t < thickness; t++) {
+        for (unsigned int x = 0; x < width; x++) {
+            vga_buffer[(y_pos + height - 1 - t) * H_RESOLUTION + x_pos + x] = color;
+        }
+    }
+
+    // Draw left border
+    for (unsigned int t = 0; t < thickness; t++) {
+        for (unsigned int y = 0; y < height; y++) {
+            vga_buffer[(y_pos + y) * H_RESOLUTION + x_pos + t] = color;
+        }
+    }
+
+    // Draw right border
+    for (unsigned int t = 0; t < thickness; t++) {
+        for (unsigned int y = 0; y < height; y++) {
+            vga_buffer[(y_pos + y) * H_RESOLUTION + x_pos + width - 1 - t] = color;
+        }
+    }
+}
+
+
+/**
+ * function with mapping for button controls
+ * button controls different things when on different menus
+ */
+void button_interrupt(void* ref){
+
+	XGpio_InterruptDisable(&Gpio, BUTTON_CHANNEL);
+	u8 button = XGpio_DiscreteRead(&Gpio, BUTTON_CHANNEL); // get the button value
+
+	switch(gamestate){
+	case 0: // main menu ///////////////////////////////////////////////////////////////////////////////////////////
+		if(button & UP){ // select the first option
+            draw_button_highlight(main_menu_pointer, 310, 595, SELECT_WIDTH, SELECT_HEIGHT, BG_COLOR_MAIN_MENU, 10);
+            draw_button_highlight(main_menu_pointer, 310, 500, SELECT_WIDTH, SELECT_HEIGHT, RED, 10);
+			main_menu_select = 0;
+			memcpy(vga_buffer_pointer, main_menu_pointer, BYTES_PER_FRAME);
+		} else if(button & DOWN){ // select the second option
+            draw_button_highlight(main_menu_pointer, 310, 500, SELECT_WIDTH, SELECT_HEIGHT, BG_COLOR_MAIN_MENU, 10);
+            draw_button_highlight(main_menu_pointer, 310, 595, SELECT_WIDTH, SELECT_HEIGHT, RED, 10);
+			main_menu_select = 1;
+			memcpy(vga_buffer_pointer, main_menu_pointer, BYTES_PER_FRAME);
+		} else if(button & MIDDLE){ // confirm selection
+			switch(main_menu_select){
+			case 0: // start game
+				game_score = 0;
+				draw_string(frame_buffer_pointer, 40, 60, score_text, BLACK, 2);
+				sprintf(score_text, "SCORE: %d", game_score);
+				draw_string(frame_buffer_pointer, 40, 60, score_text, WHITE, 2);
+				start_game();
+				gamestate = 1;
+				SHARED_SHOULD_PLAY_MUSIC = 1;
+				memcpy(vga_buffer_pointer, frame_buffer_pointer, BYTES_PER_FRAME);
+				break;
+			default:
+				break;
+			}
+		} else if(button & RIGHT){ // increase volume
+			if(main_menu_select == 1){
+
+				if(SHARED_VOLUME_INDEX < NUM_VOLUME_PRESETS - 1){
+					sprintf(sound_text, "SOUND:%d%%", percent);
+					draw_string(main_menu_pointer, 400, 600, sound_text, BG_COLOR_MAIN_MENU, 8);
+
+					SHARED_VOLUME_INDEX++;
+
+					SHARED_VOLUME_LEVEL = volume_presets[SHARED_VOLUME_INDEX];
+
+					percent = (SHARED_VOLUME_LEVEL * 100) / 255;
+					sprintf(sound_text, "SOUND:%d%%", percent);
+					draw_string(main_menu_pointer, 400, 600, sound_text, WHITE, 8);
+					memcpy(vga_buffer_pointer, main_menu_pointer, BYTES_PER_FRAME);
+				}
+			}
+		} else if(button & LEFT){ // decrease volume
+			if(main_menu_select == 1){
+				if(SHARED_VOLUME_INDEX != 0){
+					sprintf(sound_text, "SOUND:%d%%", percent);
+					draw_string(main_menu_pointer, 400, 600, sound_text, BG_COLOR_MAIN_MENU, 8);
+
+					SHARED_VOLUME_INDEX--;
+
+					SHARED_VOLUME_LEVEL = volume_presets[SHARED_VOLUME_INDEX];
+
+					percent = (SHARED_VOLUME_LEVEL * 100) / 255;
+					sprintf(sound_text, "SOUND:%d%%", percent);
+					draw_string(main_menu_pointer, 400, 600, sound_text, WHITE, 8);
+					memcpy(vga_buffer_pointer, main_menu_pointer, BYTES_PER_FRAME);
+				}
+			}
+		}
+		break;
+	case 1: // game screen ///////////////////////////////////////////////////////////////////////////////////
+		if(button & UP){ // pauses the game
+			SHARED_SHOULD_PLAY_MUSIC = 0;
+			gamestate = 2;
+			memcpy(vga_buffer_pointer, pause_menu_pointer, BYTES_PER_FRAME);
+		} else if(button & DOWN){ // speed up the block's descent
+			moveDown();
+			moveDown();
+			moveDown();
+		} else if(button & LEFT){
+			moveLeft();
+			SHARED_BUTTON_CHANGED = 1;
+		} else if(button & RIGHT){
+			moveRight();
+			SHARED_BUTTON_CHANGED = 1;
+		} else if(button & MIDDLE){
+			rotate();
+			SHARED_BUTTON_CHANGED = 1;
+		}
+		break;
+	case 2: // pause menu ///////////////////////////////////////////////////////////////////////////////////////
+		if(button & UP){ // select the first option
+		    draw_button_highlight(pause_menu_pointer, 260, 595, SELECT_WIDTH, SELECT_HEIGHT, BG_COLOR_MAIN_MENU, 10);
+		    draw_button_highlight(pause_menu_pointer, 260, 500, SELECT_WIDTH, SELECT_HEIGHT, RED, 10);
+			pause_menu_select = 0;
+			memcpy(vga_buffer_pointer, pause_menu_pointer, BYTES_PER_FRAME);
+		} else if(button & DOWN){ // select the second option
+		    draw_button_highlight(pause_menu_pointer, 260, 500, SELECT_WIDTH, SELECT_HEIGHT, BG_COLOR_MAIN_MENU, 10);
+		    draw_button_highlight(pause_menu_pointer, 260, 595, SELECT_WIDTH, SELECT_HEIGHT, RED, 10);
+			pause_menu_select = 1;
+			memcpy(vga_buffer_pointer, pause_menu_pointer, BYTES_PER_FRAME);
+		} else if(button & MIDDLE){ // confirm selection
+			switch(pause_menu_select){
+			case 0: // resume
+				gamestate = 1;
+				SHARED_SHOULD_PLAY_MUSIC = 1;
+				memcpy(vga_buffer_pointer, frame_buffer_pointer, BYTES_PER_FRAME);
+				break;
+			case 1: // exit to main menu
+				pause_menu_select = 0;
+				gamestate = 0;
+				draw_button_highlight(pause_menu_pointer, 260, 595, SELECT_WIDTH, SELECT_HEIGHT, BG_COLOR_MAIN_MENU, 10);
+				draw_button_highlight(pause_menu_pointer, 260, 500, SELECT_WIDTH, SELECT_HEIGHT, RED, 10);
+				RESTART_BGM = 1;
+				memcpy(vga_buffer_pointer, main_menu_pointer, BYTES_PER_FRAME);
+				break;
+			default: break;
+			}
+		}
+		break;
+	case 3: // gameover menu ///////////////////////////////////////////////////////////////////////////////////////
+		if(button & UP){ // select the first option
+		    draw_button_highlight(gameover_pointer, 260, 595, SELECT_WIDTH, SELECT_HEIGHT, BLACK, 10);
+		    draw_button_highlight(gameover_pointer, 260, 500, SELECT_WIDTH, SELECT_HEIGHT, RED, 10);
+			pause_menu_select = 0;
+			memcpy(vga_buffer_pointer, gameover_pointer, BYTES_PER_FRAME);
+			gameover_select = 0;
+		} else if(button & DOWN){ // select the second option
+		    draw_button_highlight(gameover_pointer, 260, 500, SELECT_WIDTH, SELECT_HEIGHT, BLACK, 10);
+		    draw_button_highlight(gameover_pointer, 260, 595, SELECT_WIDTH, SELECT_HEIGHT, RED, 10);
+			pause_menu_select = 1;
+			memcpy(vga_buffer_pointer, gameover_pointer, BYTES_PER_FRAME);
+			gameover_select = 1;
+		} else if(button & MIDDLE){
+			switch(gameover_select){ // confirm selection
+			case 0: // restart
+				gamestate = 1;
+				game_score = 0;
+				draw_string(frame_buffer_pointer, 40, 60, score_text, BLACK, 2);
+				sprintf(score_text, "SCORE: %d", game_score);
+				draw_string(frame_buffer_pointer, 40, 60, score_text, WHITE, 2);
+				start_game();
+				SHARED_SHOULD_PLAY_MUSIC = 1;
+				memcpy(vga_buffer_pointer, frame_buffer_pointer, BYTES_PER_FRAME);
+				break;
+			case 1: // exit to main menu
+				gameover_select = 0;
+				gamestate = 0;
+				draw_button_highlight(gameover_pointer, 260, 595, SELECT_WIDTH, SELECT_HEIGHT, BLACK, 10);
+				draw_button_highlight(gameover_pointer, 260, 500, SELECT_WIDTH, SELECT_HEIGHT, RED, 10);
+				RESTART_BGM = 1;
+				memcpy(vga_buffer_pointer, main_menu_pointer, BYTES_PER_FRAME);
+				break;
+			default: break;
+			}
+		}
+		break;
+	default: break;
+	}
+	usleep(100000);
+
+    // Clear the interrupt
+    XGpio_InterruptClear(&Gpio, 1);
+    XGpio_InterruptEnable(&Gpio, BUTTON_CHANNEL);
+
+    return;
+}
+
+/**
+ * this is used for game tick, everytime the timer interrupt fires, a tick happens
+ */
+void timer_interrupt(void* ref){
+    XScuTimer* TimerPtr = (XScuTimer*)ref;
+
+	XScuTimer_ClearInterruptStatus(TimerPtr);
+
+	// the tick will only happen if the current state is game play
+	if(gamestate == 1){
+		u8 i = tick();
+		if(i == 10){ // a return signal of 10 means gameover
+			if(game_score > high_score){
+			    sprintf(high_score_text, "HIGH SCORE: %d", high_score);
+			    draw_string(main_menu_pointer, 311, 450, high_score_text, BG_COLOR_MAIN_MENU, 5);
+				high_score = game_score;
+			    sprintf(high_score_text, "HIGH SCORE: %d", high_score);
+			    draw_string(main_menu_pointer, 311, 450, high_score_text, WHITE, 5);
+			}
+			// everything is reset after the game is over
+			score = 0;
+			game_speed = 100000000;
+			gamestate = 3;
+			SHARED_SHOULD_PLAY_MUSIC = 0;
+			memcpy(vga_buffer_pointer, gameover_pointer, BYTES_PER_FRAME);
+		} else if(i > 0){ // anything more than 0 but not 10 means a row clear
+
+			// score will be updated based on how many rows are cleared
+			score += i*100;
+			ROW_CLEARED = 1;
+			draw_string(frame_buffer_pointer, 40, 60, score_text, BLACK, 2);
+			sprintf(score_text, "SCORE: %d", score);
+			draw_string(frame_buffer_pointer, 40, 60, score_text, WHITE, 2);
+			memcpy(vga_buffer_pointer, frame_buffer_pointer, BYTES_PER_FRAME);
+
+			// game speed will be adjusted based on how many rows are cleared
+			// more rows cleared means faster tick speed, which means higher difficulty
+			for(; i > 0; i--) {
+				game_speed *= 0.9;
+				SHARED_SPEED_UP = 1;
+			}
+			XScuTimer_LoadTimer(&TimerInstance, game_speed);
+		}
+	}
+}
+
+int main(){
+	// Disable cache on OCM
+    Xil_SetTlbAttributes(0xFFFF0000,0x14de2);
+
+    // Wake up Core 1
+    Xil_Out32(ARM1_STARTADR, ARM1_BASEADDR);
+    dmb();
+    sev();
+
+	Xil_DCacheDisable();
+
+	// used for inter-core communication
+	SHARED_BUTTON_CHANGED = 0;
+	SHARED_SHOULD_PLAY_MUSIC = 0;
+	SHARED_SPEED_UP = 0;
+	RESTART_BGM = 0;
+	ROW_CLEARED = 0;
+
+	// setup for buttons
+	XGpio_Initialize(&Gpio, XPAR_AXI_GPIO_1_DEVICE_ID);
+	XGpio_SetDataDirection(&Gpio, BUTTON_CHANNEL, 0xFFFFFFFF);
+	XGpio_InterruptClear(&Gpio, 1);
+
+	// setup for uart
+	UartConfig = XUartPs_LookupConfig(XPAR_XUARTPS_0_DEVICE_ID);
+	XUartPs_CfgInitialize(&UartPs, UartConfig, UartConfig->BaseAddress);
+	XUartPs_SetBaudRate(&UartPs, 115200);
+
+	// setup for GIC
+	IntcConfig = XScuGic_LookupConfig(XPAR_PS7_SCUGIC_0_DEVICE_ID);
+	XScuGic_CfgInitialize(&Intc, IntcConfig, IntcConfig->CpuBaseAddress);
+
+	// setup for buttons interrupt
+	XGpio_InterruptEnable(&Gpio, 1);
+	XGpio_InterruptGlobalEnable(&Gpio);
+
+	// connect gpio interrupt to gic
+	XScuGic_Connect(
+	    &Intc,
+		XPAR_FABRIC_AXI_GPIO_1_IP2INTC_IRPT_INTR,
+	    (Xil_InterruptHandler)button_interrupt,
+	    &Gpio
+	);
+	XScuGic_Enable(&Intc, XPAR_FABRIC_AXI_GPIO_1_IP2INTC_IRPT_INTR);
+
+	// timer setup
+	TimerConfig = XScuTimer_LookupConfig(XPAR_SCUTIMER_DEVICE_ID);
+	XScuTimer_CfgInitialize(&TimerInstance, TimerConfig, TimerConfig->BaseAddr);
+	XScuTimer_LoadTimer(&TimerInstance, game_speed);
+	XScuTimer_EnableAutoReload(&TimerInstance);
+	XScuTimer_EnableInterrupt(&TimerInstance);
+
+	// timer interrupt setup
+	XScuGic_Connect(&Intc,
+	                XPAR_SCUTIMER_INTR,
+	                (Xil_ExceptionHandler)timer_interrupt,
+	                &TimerInstance);
+	XScuGic_Enable(&Intc, XPAR_SCUTIMER_INTR);
+
+	// exceptions handler
+	Xil_ExceptionRegisterHandler(
+	    XIL_EXCEPTION_ID_INT,
+	    (Xil_ExceptionHandler)XScuGic_InterruptHandler,
+	    &Intc
+	);
+	Xil_ExceptionEnable();
+
+
+	// main menu draws
+    fill_screen(main_menu_pointer, BG_COLOR_MAIN_MENU, PIXELS_PER_FRAME);
+
+    // draws the main menu title
+    blit_object(main_menu_pointer, main_title_data,
+                H_RESOLUTION,
+                main_title_width, main_title_height,
+                311, 170);
+
+    // renders the menu options character by character
+	draw_string(main_menu_pointer, 400, 505, "START GAME", WHITE, 8);
+
+	percent = (SHARED_VOLUME_LEVEL * 100) / 255;
+	sprintf(sound_text, "SOUND:%d%%", percent);
+	draw_string(main_menu_pointer, 400, 600, sound_text, WHITE, 8);
+
+    // Display high score
+    sprintf(high_score_text, "HIGH SCORE: %d", high_score);
+    draw_string(main_menu_pointer, 311, 450, high_score_text, WHITE, 5);
+
+    draw_button_highlight(main_menu_pointer, 310, 500, SELECT_WIDTH, SELECT_HEIGHT, 0x000000FF, 10);
+
+
+
+    // pause menu draw
+    fill_screen(pause_menu_pointer, BG_COLOR_PAUSE, PIXELS_PER_FRAME);
+	draw_string(pause_menu_pointer, 520, 170, "|", WHITE, 35);
+	draw_string(pause_menu_pointer, 350, 505, "RESUME GAME", WHITE, 8);
+	draw_string(pause_menu_pointer, 350, 600, "MAIN MENU", WHITE, 8);
+    draw_button_highlight(pause_menu_pointer, 260, 500, SELECT_WIDTH, SELECT_HEIGHT, RED, 10);
+
+    // gameover screen draw
+    fill_screen(gameover_pointer, BLACK, PIXELS_PER_FRAME);
+    draw_string(gameover_pointer, 100, 170, "GAME OVER", WHITE, 15);
+	draw_string(gameover_pointer, 350, 505, "RESTART", WHITE, 8);
+	draw_string(gameover_pointer, 350, 600, "MAIN MENU", WHITE, 8);
+    draw_button_highlight(gameover_pointer, 260, 500, SELECT_WIDTH, SELECT_HEIGHT, RED, 10);
+
+    // draws the score information on the game screen
+    sprintf(score_text, "SCORE: %d", game_score);
+	draw_string(frame_buffer_pointer, 40, 60, score_text, WHITE, 2);
+    draw_string(frame_buffer_pointer, 990, 60, "BTNU - PAUSE", WHITE, 2);
+    draw_string(frame_buffer_pointer, 990, 90, "BTNC - ROTATE", WHITE, 2);
+    draw_string(frame_buffer_pointer, 990, 120, "BTNL - MOVE LEFT", WHITE, 2);
+    draw_string(frame_buffer_pointer, 990, 150, "BTNR - MOVE RIGHT", WHITE, 2);
+    draw_string(frame_buffer_pointer, 990, 180, "BTND - FAST DROP", WHITE, 2);
+
+    // present the main menu when done loading
+    memcpy(vga_buffer_pointer, main_menu_pointer, BYTES_PER_FRAME);
+
+    // start the periodic timer
+	XScuTimer_Start(&TimerInstance);
+
+	while(1){}
+
+	return 0;
+}
+

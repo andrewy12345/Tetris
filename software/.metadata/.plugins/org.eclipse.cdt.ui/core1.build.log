@@ -1,0 +1,7 @@
+18:49:53 **** Clean-only build of configuration Debug for project core1 ****
+make clean 
+rm -rf  ./src/audio.o ./src/background_music_player.o ./src/start.o ./src/volume_presets.o  ./src/audio.d ./src/background_music_player.d ./src/start.d ./src/volume_presets.d  core1.elf.size  core1.elf
+' '
+
+18:49:54 Build Finished (took 275ms)
+
