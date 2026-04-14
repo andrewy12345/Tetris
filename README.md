@@ -59,19 +59,19 @@ This project is developed on Windows 11 and runs on ZedBoard Zync-7000
 ## Vivado Setup
 
 1. Open Vivado
-2. Click "Create Project" (in Quick Start section), a "New Project" window should pop up
-3. Click "Next"
+2. Click **`Create Project`** (in Quick Start section), a **`New Project`** window should pop up
+3. Click **`Next`**
 4. Optional: enter a project name
-5. For "Project Location", navigate to this folder
-6. For "Project Type", select "RTL Project", then click "Next"
-7. No need to add sources yet, click "Next"
-8. No need to add constraint files yet, click "Next"
-9. For "Default Part", switch from "Parts" to "Boards", and then search for "ZedBoard", there should only be one result, select and click "Next"
-10. Verify that informations are correct, Default Board: "ZedBoard Zynq Evaluation and Development Kit", Product: "Zynq-7000", Family: "Zynq-7000"
-11. Click "Finish", this should initialize a new project environment
+5. For **`Project Location`**, navigate to this folder
+6. For **`Project Type`**, select **`RTL Project`**, then click **`Next`**
+7. No need to add sources yet, click **`Next`**
+8. No need to add constraint files yet, click **`Next`**
+9. For **`Default Part`**, switch from **`Parts`** to **`Boards`**, and then search for "ZedBoard", there should only be one result, select and click **`Next`**
+10. Verify that informations are correct, Default Board: `ZedBoard Zynq Evaluation and Development Kit`, Product: `Zynq-7000`, Family: `Zynq-7000`
+11. Click **`Finish`**, this should initialize a new project environment
 
 
-After the intial setup, the whole window should change. At the bottom, there should be a window with multiple tabs including "Tcl Console", "Messages", "Log", "Reports", and "Design Runs". Switch to "Tcl Console" and run the following command to rebuild the project hardware.
+After the intial setup, the whole window should change. At the bottom, there should be a window with multiple tabs including **`Tcl Console`**, **`Messages`**, **`Log`**, **`Reports`**, and **`Design Runs`**. Switch to **`Tcl Console`** and run the following command to rebuild the project hardware.
 
 <br>
 
@@ -119,23 +119,23 @@ make_wrapper -files [get_files [get_property DIRECTORY [current_project]]/[curre
 
 ### Generating Bitstream
 
-After the block designs are rebuilt, click "Generate Bitstream" in the "Program and Debug" section on the left. After the bitstream is successfully generated, export the bitstream
+After the block designs are rebuilt, click **`Generate Bitstream`** in the **`Program and Debug`** section on the left. After the bitstream is successfully generated, export the bitstream
 
 ```tcl
 write_hw_platform -fixed -include_bit -force -file [file dirname [get_property DIRECTORY [current_project]]]/software/design_wrapper.xsa
 ```
 
-This bitstream can be used for this project, however an existing one is provided in the "hardware" folder
+This bitstream will be exported into the **`software`** folder, however an existing one is provided in the **`hardware`** folder
 
 ---
 
 ## Vitis Setup
 
 1. Open Vitis
-2. For "workspace", navigate to the "software" folder
-3. Click "Launch"
+2. For **`workspace`**, navigate to the **`software`** folder
+3. Click **`Launch`**
 4. Ignore any errors, the project should still build with no issues
-5. Once the project is loaded, head to the top, under the "Project" tab, click "Build All"
+5. Once the project is loaded, head to the top, under the **`Project`** tab, click **`Build All`**
 
 ---
 
@@ -144,8 +144,8 @@ This bitstream can be used for this project, however an existing one is provided
 1. Once the build is complete, you can run it on your ZedBoard
 2. Make sure your ZedBoard is connected to the computer via USB
 3. Connect the ZedBoard to a monitor via VGA port, you need this for graphical output
-4. In Vitis, in the "Explorer" tab on the left, right click on "dual_core_system"
-5. In the options menu, go down to "Run As" > "Launch Hardware"
+4. In Vitis, in the **`Explorer`** tab on the left, right click on **`dual_core_system`**
+5. In the options menu, go down to **`Run As`** > **`Launch Hardware`**
 6. Wait for the device to be programed, the game should finish loading once the main menu appears on screen
 
 ---
