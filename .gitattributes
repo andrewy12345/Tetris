@@ -1,0 +1,6 @@
+# only include custom code for language stat calculations
+hardware/ip/audio-controller/** linguist-vendored
+hardware/ip/vga-controller/** linguist-vendored
+software/** linguist-generated
+software/core0/src/** linguist-generated=false
+software/core1/src/** linguist-generated=false
