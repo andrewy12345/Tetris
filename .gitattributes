@@ -1,6 +1,9 @@
 # only include custom code for language stat calculations
-hardware/ip/audio-controller/** linguist-vendored
-hardware/ip/vga-controller/** linguist-vendored
-software/** linguist-generated
+hardware/block_design.tcl linguist-generated=true
+hardware/design_wrapper.xsa  linguist-generated=true
+hardware/ip/audio-controller/** linguist-vendored=true
+hardware/ip/vga-controller/** linguist-vendored=true
+software/** linguist-generated=true
+
 software/core0/src/** linguist-generated=false
 software/core1/src/** linguist-generated=false
