@@ -73,6 +73,8 @@ This project is developed on Windows 11 and runs on ZedBoard Zync-7000
 
 After the intial setup, the whole window should change. At the bottom, there should be a window with multiple tabs including "Tcl Console", "Messages", "Log", "Reports", and "Design Runs". Switch to "Tcl Console" and run the following command to rebuild the project hardware.
 
+<br>
+
 ### Automatic Rebuild
 
 You can try running the included build script
@@ -81,6 +83,8 @@ source [file dirname [get_property DIRECTORY [current_project]]]/hardware/build.
 ```
 
 If the above command fails, then try again, if issues persist, try doing it manually following the instructions below
+
+<br>
 
 ### Manual Rebuild
 
@@ -110,6 +114,8 @@ Add wrapper
 ```tcl
 make_wrapper -files [get_files [get_property DIRECTORY [current_project]]/[current_project].srcs/sources_1/bd/design_1/design_1.bd] -top
 ```
+
+<br>
 
 ### Generating Bitstream
 
