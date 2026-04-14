@@ -1,4 +1,4 @@
-# Tetris on Zedboard Zynq-7000
+# Tetris on ZedBoard Zynq-7000
 This is a Tetris game built to run on the [Zedboard Zynq-7000](https://digilent.com/shop/zedboard-zynq-7000-arm-fpga-soc-development-board/?srsltid=AfmBOoowJEGiRcV7L6c5d6dKkC5mMLZLUGxVGknO0NxrmFk0kgSoPUmH) which includes:
 - custom hardware system that runs on the programmable fabric
 - two software systems built for the [Zync-7000](https://www.amd.com/en/products/adaptive-socs-and-fpgas/soc/zynq-7000.html)'s dual core architecture. 
