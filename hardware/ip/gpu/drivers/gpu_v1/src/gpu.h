@@ -1,16 +1,16 @@
 
-#ifndef TEST1_H
-#define TEST1_H
+#ifndef GPU_H
+#define GPU_H
 
 
 /****************** Include Files ********************/
 #include "xil_types.h"
 #include "xstatus.h"
 
-#define TEST1_S_AXI_SLV_REG0_OFFSET 0
-#define TEST1_S_AXI_SLV_REG1_OFFSET 4
-#define TEST1_S_AXI_SLV_REG2_OFFSET 8
-#define TEST1_S_AXI_SLV_REG3_OFFSET 12
+#define GPU_S_AXI_SLV_REG0_OFFSET 0
+#define GPU_S_AXI_SLV_REG1_OFFSET 4
+#define GPU_S_AXI_SLV_REG2_OFFSET 8
+#define GPU_S_AXI_SLV_REG3_OFFSET 12
 
 
 /**************************** Type Definitions *****************************/
@@ -31,7 +31,7 @@
  * 	void TEST1_mWriteReg(u32 BaseAddress, unsigned RegOffset, u32 Data)
  *
  */
-#define TEST1_mWriteReg(BaseAddress, RegOffset, Data) \
+#define GPU_mWriteReg(BaseAddress, RegOffset, Data) \
   	Xil_Out32((BaseAddress) + (RegOffset), (u32)(Data))
 
 /**
@@ -51,7 +51,7 @@
  * 	u32 TEST1_mReadReg(u32 BaseAddress, unsigned RegOffset)
  *
  */
-#define TEST1_mReadReg(BaseAddress, RegOffset) \
+#define GPU_mReadReg(BaseAddress, RegOffset) \
     Xil_In32((BaseAddress) + (RegOffset))
 
 /************************** Function Prototypes ****************************/
@@ -74,6 +74,6 @@
  * @note    Self test may fail if data memory and device are not on the same bus.
  *
  */
-XStatus TEST1_Reg_SelfTest(void * baseaddr_p);
+XStatus GPU_Reg_SelfTest(void * baseaddr_p);
 
-#endif // TEST1_H
+#endif // GPU_H
