@@ -119,7 +119,7 @@ make_wrapper -files [get_files [get_property DIRECTORY [current_project]]/[curre
 
 ### Generating Bitstream
 
-After the block designs are rebuilt, click **`Generate Bitstream`** in the **`Program and Debug`** section on the left. After the bitstream is successfully generated, export the bitstream
+After the block designs are rebuilt, click **`Generate Bitstream`** in the **`Program and Debug`** section on the left. After the bitstream is successfully generated, export the hardware platform
 
 ```tcl
 write_hw_platform -fixed -include_bit -force -file [file dirname [get_property DIRECTORY [current_project]]]/software/design_wrapper.xsa
