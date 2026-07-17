@@ -28,20 +28,20 @@ This is a Tetris game built to run on the [Zedboard Zynq-7000](https://digilent.
 
 ```
 📁 hardware/                # necessary script and IP for the system in Vivado
- ├─ 📄 build.tcl            # automatic build script
- ├─ 📄 block_design.tcl     # script for generating custom hardware layout
- ├─ 📄 design_wrapper.xsa   # bitstream for the hardware platform
- ├─ 📁 constraints/         # constraint files for ZedBoard
- ├─ 📁 ip/                  # custom IPs used for this project
- │   ├─ 📁 gpu/
- │   ├─ 📁 lfsr/
- │   ├─ 📁 vga-controller/
- │   ├─ 📁 audio-controller/
+ ├─📄 build.tcl            # automatic build script
+ ├─📄 block_design.tcl     # script for generating custom hardware layout
+ ├─📄 design_wrapper.xsa   # bitstream for the hardware platform
+ ├─📁 constraints/         # constraint files for ZedBoard
+ ├─📁 ip/                  # custom IPs used for this project
+ │   ├─📁 gpu/
+ │   ├─📁 lfsr/
+ │   ├─📁 vga-controller/
+ │   └─📁 audio-controller/
 📁 images/                  # screenshots and photos of this game
 📁 software/                # workspace directory for Vitis
- │   ├─ 📁 core0/           # software system for the game
- │   ├─ 📁 core1/           # audio system for the game
- │   ├─ 📁 tetris_plt/      # hardware platform
+     ├─📁 core0/           # software system for the game
+     ├─📁 core1/           # audio system for the game
+     └─📁 tetris_plt/      # hardware platform
 ```
 
 ---
