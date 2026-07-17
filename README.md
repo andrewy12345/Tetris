@@ -33,15 +33,15 @@ This is a Tetris game built to run on the [Zedboard Zynq-7000](https://digilent.
  ├─📄 design_wrapper.xsa   # bitstream for the hardware platform
  ├─📁 constraints/         # constraint files for ZedBoard
  ├─📁 ip/                  # custom IPs used for this project
- │   ├─📁 gpu/
- │   ├─📁 lfsr/
- │   ├─📁 vga-controller/
- │   └─📁 audio-controller/
+ │  ├─📁 gpu/
+ │  ├─📁 lfsr/
+ │  ├─📁 vga-controller/
+ │  └─📁 audio-controller/
 📁 images/                  # screenshots and photos of this game
 📁 software/                # workspace directory for Vitis
-     ├─📁 core0/           # software system for the game
-     ├─📁 core1/           # audio system for the game
-     └─📁 tetris_plt/      # hardware platform
+ ├─📁 core0/           # software system for the game
+ ├─📁 core1/           # audio system for the game
+ └─📁 tetris_plt/      # hardware platform
 ```
 
 ---
